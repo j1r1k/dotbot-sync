@@ -29,7 +29,7 @@ class Sync(dotbot.Plugin):
             for destination, source in records.items():
                 destination = self._expand(destination)
                 rsync = defaults.get('rsync', 'rsync')
-                options = defaults.get('options', ['--delete'])
+                options = defaults.get('options', ['--delete', '--safe-links'])
                 create = defaults.get('create', False)
                 fmode = defaults.get('fmode', 644)
                 dmode = defaults.get('dmode', 755)
@@ -88,10 +88,16 @@ class Sync(dotbot.Plugin):
         source = os.path.join(self._context.base_directory(), source)
         destination = os.path.expanduser(destination)
         try:
+            cmd = [rsync,
+                    '--update',
+                    '--recursive',
+                    '--group',
+                    '--owner',
+                    '--chown=%s:%s' % (owner, group),
+                    '--chmod=D%s,F%s' % (dmode, fmode)]
             if os.path.isdir(source):
                 source = '%s/' % source
-            ret = subprocess.call(
-                    [rsync, '--archive', '--owner="%s"' % owner, '--group="%s"' % group, '--chmod=D%s,F%s' % (dmode, fmode)] + options + [source, destination],
+            ret = subprocess.call(cmd + options + [source, destination],
                     stdout=stdout, stderr=stderr, cwd=self._context.base_directory())
             if ret != 0:
                 self._log.warning('Failed to sync %s -> %s' % (source, destination))

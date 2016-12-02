@@ -7,7 +7,7 @@ You can now track files that should not be world viewable or require special per
 
 ## Prerequisites
 
-`rsync` needs to be available on the system and runnuble by the user executing `dotbot`
+`rsync` (version 3.1 or newer) needs to be available on the system and runnuble by the user executing `dotbot`
 
 ## Usage
 
@@ -32,15 +32,15 @@ Example containing all options enumerated with their default values:
 ```yaml
 - defaults:
     sync:
-      rsync: 'rsync'                # rsync executable to be used
-      options: ['--delete']         # options for rsync
-      create: false                 # create missing directory hierarchy
-      fmode: 644                    # file mode
-      dmode: 755                    # directory mode
-      owner: '<current user name>'  # owner (default value is looked up at runtime)
-      group: '<current user group>' # group (default value is looked up at runtime)
-      stdout: false                 # ignore stdout of rsync process
-      stderr: false                 # ignore stderr of rsync process
+      rsync: 'rsync'                        # rsync executable to be used
+      options: ['--delete', '--safe-links'] # list of options for rsync
+      create: false                         # create missing directory hierarchy
+      fmode: 644                            # file mode
+      dmode: 755                            # directory mode
+      owner: '<current user name>'          # owner (default value is looked up at runtime)
+      group: '<current user group>'         # group (default value is looked up at runtime)
+      stdout: false                         # ignore stdout of rsync process
+      stderr: false                         # ignore stderr of rsync process
 
 - sync:
     ~/.ssh/authorized_keys:
