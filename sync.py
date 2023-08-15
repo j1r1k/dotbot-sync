@@ -1,4 +1,6 @@
 import os, subprocess, dotbot, pwd, grp
+from glob import glob
+
 
 class Sync(dotbot.Plugin):
     '''
@@ -19,15 +21,18 @@ class Sync(dotbot.Plugin):
         os.chmod(path, chmod)
         os.chown(path, uid, gid)
 
-    def _expand(self, path):
-        return os.path.expandvars(os.path.expanduser(path))
+    @staticmethod
+    def expand_path(path, globs=False):
+        path = os.path.expanduser(path)
+        path = os.path.expandvars(path)
+        return glob(path) if globs else [path]
 
     def _process_records(self, records):
         success = True
         defaults = self._context.defaults().get('sync', {})
         with open(os.devnull, 'w') as devnull:
             for destination, source in records.items():
-                destination = self._expand(destination)
+                (destination,) = Sync.expand_path(destination, globs=False)
                 rsync = defaults.get('rsync', 'rsync')
                 options = defaults.get('options', ['--delete', '--safe-links'])
                 create = defaults.get('create', False)
@@ -45,19 +50,29 @@ class Sync(dotbot.Plugin):
                     dmode = source.get('dmode', dmode)
                     owner = source.get('owner', owner)
                     group = source.get('group', group)
-                    path = source['path']
+                    paths_expression = source['path']
+
                     if source.get('stdout', defaults.get('stdout', False)) is True:
                         stdout = None
                     if source.get('stderr', defaults.get('stderr', False)) is True:
                         stderr = None
                 else:
-                    path = source
+                    paths_expression = source
+
                 uid = pwd.getpwnam(owner).pw_uid
                 gid = grp.getgrnam(group).gr_gid
+
                 if create:
                     success &= self._create(destination, int('%s' % dmode, 8), uid, gid)
-                path = self._expand(path)
-                success &= self._sync(path, destination, dmode, fmode, owner, group, rsync, options, stdout, stderr)
+
+                paths = Sync.expand_path(paths_expression, globs=True)
+
+                if len(paths) > 1:
+                    self._log.lowinfo(
+                        'Synchronizing expression {}'.format(paths_expression))
+
+                for path in paths:
+                    success &= self._sync(path, destination, dmode, fmode, owner, group, rsync, options, stdout, stderr)
         if success:
             self._log.info('All synchronizations have been done')
         else:
