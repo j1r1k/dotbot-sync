@@ -69,7 +69,7 @@ class Sync(dotbot.Plugin):
 
                 if len(paths) > 1:
                     self._log.lowinfo(
-                        'Synchronizing expression {}'.format(paths_expression))
+                        'Synchronizing expression {} -> {}'.format(paths_expression, destination))
 
                 for path in paths:
                     success &= self._sync(path, destination, dmode, fmode, owner, group, rsync, options, stdout, stderr)
