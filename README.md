@@ -46,4 +46,7 @@ Example containing all options enumerated with their default values:
     ~/.ssh/authorized_keys:
        path: 'ssh/authorized_keys'
        fmode: 400
+
+    ~/.ssh/pubkeys/:
+       path: 'ssh/pubkeys/*.pub' # support for glob expressions
 ```
